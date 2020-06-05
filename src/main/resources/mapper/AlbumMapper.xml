@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.demo.mapper.AlbumMapper">
+
+   <resultMap type="com.example.demo.model.Song" id="songs">
+      <result column="song_id" property="id"/>
+      <result column="song_length" property="length" />
+      <result column="song_track" property="track" />
+      <result column="song_title" property="title" />
+   </resultMap>
+
+   <resultMap type="com.example.demo.model.Album" id="album">
+      <result property="id" column="id" />
+      <result column="title" property="title" />
+      <collection property="songs" resultMap="songs" />
+   </resultMap>
+
+  <select id="selectAlbumWhereLocaleTitle" resultMap="album">
+    SELECT
+		albumT.album_id AS id,
+		albumT.album_title AS title,
+		songT.song_id AS song_id,
+		songT.song_title AS song_title,
+		songT.song_track AS song_track,
+		songT.song_length AS song_length
+	FROM
+		TB_ALBUM albumT
+	JOIN 
+		MAP_ALBUM_LOCALE mapT 
+	ON 
+		albumT.album_id = mapT.album_id
+	JOIN 
+		TB_LOCALE localeT 
+	ON 
+		mapT.locale_id = localeT.locale_id
+	AND
+		(localeT.locale = 'all' OR localeT.locale = #{locale})
+	JOIN 
+		TB_SONG songT 
+	ON  
+		albumT.album_id = songT.album_id
+	WHERE
+		albumT.album_title LIKE #{title}
+	ORDER BY 
+		albumT.album_id, songT.song_id, songT.song_track
+  </select>
+  
+  <select id="selectAlbumCountWhereLocale" resultType="int">
+  	SELECT 
+  		COUNT(albumT.album_id) 
+  	FROM 
+  		TB_ALBUM albumT
+  	JOIN
+  		MAP_ALBUM_LOCALE mapT 
+  	ON 
+  		albumT.album_id = mapT.album_id
+  	JOIN
+  		TB_LOCALE localeT 
+  	ON 
+  		mapT.locale_id = localeT.locale_id 
+  	AND
+  		(localeT.locale = 'all' OR localeT.locale = #{locale})
+  </select>
+  
+   <select id="selectAlbumWhereLocale" resultMap="album">
+	SELECT 
+		albumT2.album_id AS id,
+		albumT2.album_title AS title,
+		songT.song_id AS song_id,
+		songT.song_title AS song_title,
+		songT.song_track AS song_track,
+		songT.song_length AS song_length
+	FROM
+		(SELECT 
+			albumT.album_id, 
+			albumT.album_title
+		FROM 
+			TB_ALBUM albumT
+		JOIN 
+			MAP_ALBUM_LOCALE mapT
+		ON
+			albumT.album_id = mapT.album_id
+		JOIN 
+			TB_LOCALE localeT
+		ON
+			mapT.locale_id = localeT.locale_id
+		AND 
+			(localeT.locale = 'all' OR localeT.locale = #{locale})
+		ORDER BY 
+			album_id
+		LIMIT ${offset}, ${limit}) albumT2
+	JOIN 
+		TB_SONG songT
+	ON 
+		albumT2.album_id = songT.album_id
+	ORDER BY
+		albumT2.album_id, songT.song_id, songT.song_track
+  </select>
+  
+</mapper>

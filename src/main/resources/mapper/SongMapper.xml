@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.demo.mapper.SongMapper">
+
+  <select id="selectSongWhereLocaleTitle" resultType="com.example.demo.model.Song" parameterType="java.util.Map">
+	SELECT 
+		songT.song_title AS title,
+		songT.song_id AS id,
+		songT.song_length AS length,
+		songT.song_track AS track
+	FROM
+		TB_SONG songT
+	JOIN 
+		TB_ALBUM albumT ON albumT.album_id = songT.album_id
+	JOIN 
+		MAP_ALBUM_LOCALE mapT ON albumT.album_id = mapT.album_id
+	JOIN 
+		TB_LOCALE localeT ON mapT.locale_id = localeT.locale_id
+	AND 
+		(localeT.locale = 'all' OR localeT.locale = #{locale})
+	WHERE
+		songT.song_title LIKE #{title}
+	ORDER BY
+		albumT.album_id, songT.song_track
+  </select>
+  
+  <select id="selectSongIdWhereAlbumId" resultType="String">
+	SELECT
+		song_id AS id
+	FROM
+		TB_SONG
+	WHERE
+		album_id = #{albumId}
+	ORDER BY
+		song_track
+  </select>  
+  
+</mapper>

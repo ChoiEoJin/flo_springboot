@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.demo.mapper.PlaylistMapper">
+
+  <select id="selectPlaylistWhereUserId" resultType="com.example.demo.model.Playlist">
+	SELECT
+		playlistT.playlist_id AS playlist_id,
+		playlistT.playlist_name AS playlist_name,
+		playlistT.user_id AS user_id,
+		count(mapT.song_id) AS song_count
+	FROM 
+		TB_PLAYLIST playlistT
+	LEFT JOIN 
+		MAP_PLAYLIST_SONG mapT
+	ON
+		playlistT.playlist_id = mapT.playlist_id
+	WHERE
+		playlistT.user_id = #{user_id}
+	GROUP BY 
+		(playlistT.playlist_id)
+	ORDER BY 
+		playlistT.playlist_sort_seq, playlistT.playlist_id
+  </select>
+  
+  <insert id="insertPlaylist" parameterType="com.example.demo.dto.PlaylistDTO">
+  	INSERT INTO TB_PLAYLIST (
+		playlist_name,
+		user_id,
+		playlist_sort_seq
+	) VALUES (
+		#{playlistName},
+		#{userId},
+		(SELECT t.sort_seq FROM (SELECT MAX(playlist_sort_seq)+1 AS sort_seq FROM TB_PLAYLIST WHERE user_id = 1) t)
+	);
+  </insert>
+  
+  <insert id="insertMapPlaylistSong" parameterType="com.example.demo.dto.PlaylistDTO">
+  	INSERT INTO MAP_PLAYLIST_SONG (
+		playlist_id,
+		song_id
+	) VALUES 
+	<foreach collection="songs" item="song_id" separator=",">
+		(#{playlistId} , #{song_id})
+ 	</foreach>
+  </insert>
+  
+  <delete id="deletePlaylistWhereIdUserID" parameterType="com.example.demo.dto.PlaylistDTO">
+  	DELETE FROM TB_PLAYLIST WHERE playlist_id = #{playlistId} AND user_id = #{userId}
+  </delete>
+
+</mapper>
